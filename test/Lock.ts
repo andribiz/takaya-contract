@@ -139,11 +139,8 @@ describe("Vault", function () {
       await usdt
         .connect(otherAccount)
         .approve(vault.address, ethers.utils.parseEther("100000"));
-      await expect(
-        vault
-          .connect(otherAccount)
-          .depositLocker(b, ethers.utils.parseEther("100.0"))
-      ).not.to.be.reverted;
+      await expect(vault.connect(otherAccount).depositLocker(b)).not.to.be
+        .reverted;
       const locker = await vault.lockers(b);
       expect(ethers.utils.formatEther(locker.totalBalance)).to.be.equal(
         "200.0"
@@ -168,11 +165,8 @@ describe("Vault", function () {
       await usdt
         .connect(otherAccount)
         .approve(vault.address, ethers.utils.parseEther("100000"));
-      await expect(
-        vault
-          .connect(otherAccount)
-          .depositLocker(b, ethers.utils.parseEther("100.0"))
-      ).not.to.be.reverted;
+      await expect(vault.connect(otherAccount).depositLocker(b)).not.to.be
+        .reverted;
 
       await expect(vault.closeLocker(b)).not.to.be.reverted;
 
@@ -225,11 +219,8 @@ describe("Vault", function () {
       await usdt
         .connect(otherAccount)
         .approve(vault.address, ethers.utils.parseEther("100000"));
-      await expect(
-        vault
-          .connect(otherAccount)
-          .depositLocker(b, ethers.utils.parseEther("100.0"))
-      ).not.to.be.reverted;
+      await expect(vault.connect(otherAccount).depositLocker(b)).not.to.be
+        .reverted;
 
       await expect(vault.closeLocker(b)).not.to.be.reverted;
 
@@ -281,11 +272,8 @@ describe("Vault", function () {
       await usdt
         .connect(otherAccount)
         .approve(vault.address, ethers.utils.parseEther("100000"));
-      await expect(
-        vault
-          .connect(otherAccount)
-          .depositLocker(b, ethers.utils.parseEther("100.0"))
-      ).not.to.be.reverted;
+      await expect(vault.connect(otherAccount).depositLocker(b)).not.to.be
+        .reverted;
 
       // await expect(vault.closeLocker(b)).not.to.be.reverted;
 
