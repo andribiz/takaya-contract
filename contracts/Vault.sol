@@ -26,6 +26,32 @@ contract Vault is Ownable {
     mapping(address => mapping(address => uint256)) public balances;
     mapping(address => uint256) public balancesFee;
 
+    event LockerCreated(
+        address indexed id,
+        address creator,
+        address token,
+        uint256 amount
+    );
+    event LockerDeposited(
+        address indexed id,
+        address indexed depositor,
+        uint256 amount
+    );
+    event LockerWithdrawed(
+        address indexed id,
+        address indexed player,
+        uint256 amount
+    );
+    event LockerClosed(address indexed id);
+    event LockerWinner(address indexed id, address indexed winner);
+    event BalanceWithdrawed(
+        address indexed player,
+        address indexed token,
+        address to,
+        uint256 amount
+    );
+    event FeeWithdrawed(address indexed token, address to, uint256 amount);
+
     function calculateFee(uint256 _amount) public view returns (uint256) {
         return (_amount * fee) / BASIS_POINTS_DIVISOR;
     }
@@ -46,7 +72,7 @@ contract Vault is Ownable {
         locker.players[msg.sender] = true;
         totalLocker += 1;
 
-        //TODO: Emit Event
+        emit LockerCreated(_id, msg.sender, _token, _amount);
     }
 
     function addTokens(address[] memory _tokens) external onlyOwner {
@@ -62,6 +88,7 @@ contract Vault is Ownable {
         );
         balances[msg.sender][_token] -= _amount;
         IERC20(_token).transfer(_to, _amount);
+        emit BalanceWithdrawed(msg.sender, _token, _to, _amount);
     }
 
     function withdrawLocker(address _id, address _to) external {
@@ -83,25 +110,26 @@ contract Vault is Ownable {
         locker.players[msg.sender] = false;
         balancesLock[locker.token] -= amount;
         IERC20(locker.token).transfer(_to, amount);
+        emit LockerWithdrawed(_id, msg.sender, amount);
     }
 
-    function depositLocker(address _id, uint256 _amount) external {
+    function depositLocker(address _id) external {
         Locker storage locker = lockers[_id];
         require(locker.playersCount != 0, "Locker: Invalid ID Locker");
 
         require(locker.state == 0, "Locker: Closed");
         uint256 amount = locker.totalBalance / locker.playersCount;
-        require(amount == _amount, "Locker: Invalid Different Amount");
         require(
             locker.players[msg.sender] == false,
             "Locker: Already Deposited"
         );
 
-        IERC20(locker.token).transferFrom(msg.sender, address(this), _amount);
-        balancesLock[locker.token] += _amount;
+        IERC20(locker.token).transferFrom(msg.sender, address(this), amount);
+        balancesLock[locker.token] += amount;
         locker.players[msg.sender] = true;
-        locker.totalBalance += _amount;
+        locker.totalBalance += amount;
         locker.playersCount += 1;
+        emit LockerDeposited(_id, msg.sender, amount);
     }
 
     function closeLocker(address _id) external onlyOwner {
@@ -109,6 +137,7 @@ contract Vault is Ownable {
         require(locker.playersCount > 1, "Locker: Invalid ID Locker");
         require(locker.state == 0, "Locker: Invalid State Locker");
         locker.state = 1;
+        emit LockerClosed(_id);
     }
 
     function setWinner(address _id, address _winner) external onlyOwner {
@@ -125,6 +154,7 @@ contract Vault is Ownable {
             locker.totalBalance -
             amountFee;
         balancesFee[locker.token] += amountFee;
+        emit LockerWinner(_id, _winner);
     }
 
     function withdrawFee(
@@ -139,5 +169,6 @@ contract Vault is Ownable {
 
         balancesFee[_token] -= _amount;
         IERC20(_token).transfer(_to, _amount);
+        emit FeeWithdrawed(_token, _to, _amount);
     }
 }
